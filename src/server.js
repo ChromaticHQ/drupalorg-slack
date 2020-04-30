@@ -1,14 +1,15 @@
 const config = require('./config');
 
 const axios = require('axios');
-let cheerio = require('cheerio');
+const cheerio = require('cheerio');
 
 const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
+
 const receiver = new ExpressReceiver({
-  signingSecret: process.env.SLACK_SIGNING_SECRET
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
 const app = new App({
-  receiver: receiver,
+  receiver,
   token: config.slackBotToken,
   logLevel: LogLevel.DEBUG,
 });
@@ -21,7 +22,7 @@ const app = new App({
 
 function getDrupalMarketplaceData(marketplaceUrl, rankCount = 0) {
   return axios.get(marketplaceUrl)
-    .then(marketplaceResponse => {
+    .then((marketplaceResponse) => {
       const html = marketplaceResponse.data;
       const $ = cheerio.load(html, { xmlMode: false });
       console.log($('.view-drupalorg-organizations .view-content').children().length);
@@ -34,17 +35,15 @@ function getDrupalMarketplaceData(marketplaceUrl, rankCount = 0) {
         const foundRank = rankCount + $(`#node-${config.chromaticDrupalOrgNid}`).parent().prevAll().length + 1;
         return foundRank;
       }
-      else {
-        // Chromatic is not on the current page, go to the next page.
-        const nextPageUrl = config.drupalOrgBaseUrl + $('.pager .pager-next a').attr('href');
-        console.log(nextPageUrl);
-        rankCount = rankCount + $('.view-drupalorg-organizations .view-content').children().length;
-        return getDrupalMarketplaceData(nextPageUrl, rankCount);
-      }
-  })
-  .catch(error => {
-    console.error(error);
-  })
+      // Chromatic is not on the current page, go to the next page.
+      const nextPageUrl = config.drupalOrgBaseUrl + $('.pager .pager-next a').attr('href');
+      console.log(nextPageUrl);
+      rankCount += $('.view-drupalorg-organizations .view-content').children().length;
+      return getDrupalMarketplaceData(nextPageUrl, rankCount);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 const drupalOrgPayloadBlocks = (chqDrupalIssueCreditCount, chqDrupalProjectsSupported, marketplaceRank, marketplacePage) => {
@@ -53,36 +52,36 @@ const drupalOrgPayloadBlocks = (chqDrupalIssueCreditCount, chqDrupalProjectsSupp
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `<https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: ${marketplaceRank}`
-    }
+      text: `<https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: ${marketplaceRank}`,
+    },
   });
   blocks.push({
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `Issue credit count: ${chqDrupalIssueCreditCount}`
-    }
+      text: `Issue credit count: ${chqDrupalIssueCreditCount}`,
+    },
   });
   blocks.push({
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `Supported projects: ${chqDrupalProjectsSupported}`
-    }
+      text: `Supported projects: ${chqDrupalProjectsSupported}`,
+    },
   });
-  
+
   // Footer.
   blocks.push({
-    type: 'divider'
+    type: 'divider',
   });
   blocks.push({
     type: 'context',
     elements: [
       {
         type: 'mrkdwn',
-        text: 'For more info, see https://www.drupal.org/chromatic.'
-      }
-    ]
+        text: 'For more info, see https://www.drupal.org/chromatic.',
+      },
+    ],
   });
   return blocks;
 };
@@ -91,14 +90,14 @@ const drupalOrgPayloadBlocks = (chqDrupalIssueCreditCount, chqDrupalProjectsSupp
 app.command('/dorank', async ({ command, ack, respond }) => {
   // Acknowledge Slack command request.
   await ack();
-  
+
   const drupalOrgMarketplacePageOne = `${config.drupalOrgBaseUrl}${config.drupalOrgMarketplacePath}`;
   try {
-    const [ chqNodeResponse, marketplaceRank ] = await Promise.all([ 
-      axios.get(`https://www.drupal.org/api-d7/node/${config.chromaticDrupalOrgNid}.json`), 
+    const [chqNodeResponse, marketplaceRank] = await Promise.all([
+      axios.get(`https://www.drupal.org/api-d7/node/${config.chromaticDrupalOrgNid}.json`),
       getDrupalMarketplaceData(drupalOrgMarketplacePageOne),
     ]);
-  
+
     const chqDrupalIssueCreditCount = chqNodeResponse.data.field_org_issue_credit_count;
     const chqDrupalProjectsSupported = chqNodeResponse.data.projects_supported.length;
 
@@ -111,48 +110,47 @@ app.command('/dorank', async ({ command, ack, respond }) => {
       text: 'Chromatic `<https://drupal.org/chromatic|drupal.org>` Statistics :chromatic::drupal:',
       attachments: [
         {
-          blocks: drupalOrgPayloadBlocks(chqDrupalIssueCreditCount, chqDrupalProjectsSupported, marketplaceRank, Math.floor(marketplaceRank / 25))
-        }
-      ]
+          blocks: drupalOrgPayloadBlocks(chqDrupalIssueCreditCount, chqDrupalProjectsSupported, marketplaceRank, Math.floor(marketplaceRank / 25)),
+        },
+      ],
     };
     return await respond(payload);
-  }
-  catch(error) {
+  } catch (error) {
     console.error(error);
   }
 });
 
-// This endpoint is triggered by a non-Slack event like a Jenkins job for a 
+// This endpoint is triggered by a non-Slack event like a Jenkins job for a
 // weekly notification in the configured announcements channel.
 receiver.app.post('/triggers', (request, response, next) => {
   if (request.query.token !== config.chromaticToken) {
     response.status(403);
     return response.send();
   }
-  
+
   axios
     .get(config.bamboo.whosOutUrl, config.bamboo.apiRequestConfig)
-    .then(response => {
+    .then((response) => {
       if (response.status === 200) {
         // Allow overriding of #chromatic default with sandbox channel.
         const channelId = config.debugMode ? config.channels.sandboxId : config.channels.announcementsId;
         console.log(`Debug mode: ${config.debugMode ? 'ON' : 'OFF'}`);
         console.log(`Sending notification to channel: ${channelId}`);
-        
+
         payload = {
           channel: channelId,
           text: config.whosOutMessageText,
           attachments: [
             {
-              blocks: whosOutPayloadBlocks(response)
-            }
-          ]
+              blocks: whosOutPayloadBlocks(response),
+            },
+          ],
         };
         return slackWebClient.chat.postMessage(payload);
       }
       return next();
     })
-    .catch(error => {
+    .catch((error) => {
       console.error(error);
     });
   response.status(200);

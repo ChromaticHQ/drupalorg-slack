@@ -5,9 +5,9 @@ module.exports = {
   chromaticToken: process.env.CHROMATIC_TOKEN,
   channels: {
     announcementsId: 'C03FBG24G',
-    sandboxId: process.env.SANDBOX_CHANNEL_ID
+    sandboxId: process.env.SANDBOX_CHANNEL_ID,
   },
   chromaticDrupalOrgNid: 2127245,
   drupalOrgBaseUrl: 'https://www.drupal.org',
-  drupalOrgMarketplacePath: '/drupal-services'
+  drupalOrgMarketplacePath: '/drupal-services',
 };
