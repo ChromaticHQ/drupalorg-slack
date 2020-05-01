@@ -1,6 +1,6 @@
 {
   "name": "drupalorg-slack",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CHQ Drupal.org/Slack integration",
   "main": "server.js",
   "scripts": {
@@ -9,8 +9,7 @@
     "lint:fix": "eslint --fix '**/*.js'"
   },
   "dependencies": {
-    "axios": "^0.18.0",
-    "axios-debug-log": "^0.4.0",
+    "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.2",
     "@slack/bolt": "^2.0.0"
   },
@@ -27,8 +26,9 @@
     "express"
   ],
   "devDependencies": {
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.12.0"
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "npm-check": "*"
   }
 }

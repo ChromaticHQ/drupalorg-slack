@@ -1,9 +1,8 @@
-const config = require('./config');
-
+const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
+const config = require('./config');
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -169,9 +168,9 @@ receiver.app.post('/triggers', async (request, response, next) => {
     return response.send();
   }
   try {
-    const channelId = config.debugMode ?
-      config.channels.sandboxId :
-      config.channels.defaultChannelId;
+    const channelId = config.debugMode
+      ? config.channels.sandboxId
+      : config.channels.defaultChannelId;
     const payload = await slackNotificationPayload(channelId, null, 'in_channel');
     app.client.chat.postMessage(payload);
   } catch (error) {
