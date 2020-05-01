@@ -1,0 +1,47 @@
+{
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Chromatic <https://drupal.org/chromatic|drupal.org> Statistics :chromatic::zap::drupal:"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": ":shopping_trolley: Marketplace rank: 63"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": ":female-technologist: Issue credit count: 7"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": ":female-construction-worker: Supported projects: 13"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "context",
+			"elements": [
+				{
+					"type": "mrkdwn",
+					"text": "For more info, see https://www.drupal.org/chromatic."
+				}
+			]
+		}
+	]
+}

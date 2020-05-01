@@ -4,7 +4,9 @@
   "description": "CHQ Drupal.org/Slack integration",
   "main": "server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "lint": "eslint '**/*.js'",
+    "fix": "eslint --fix '**/*.js'"
   },
   "dependencies": {
     "axios": "^0.18.0",

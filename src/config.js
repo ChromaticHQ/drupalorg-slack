@@ -5,6 +5,7 @@ module.exports = {
   chromaticToken: process.env.CHROMATIC_TOKEN,
   channels: {
     announcementsId: 'C03FBG24G',
+    openSourceId: 'C0J8SLT1V',
     sandboxId: process.env.SANDBOX_CHANNEL_ID,
   },
   chromaticDrupalOrgNid: 2127245,
