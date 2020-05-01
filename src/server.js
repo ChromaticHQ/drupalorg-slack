@@ -50,7 +50,7 @@ const drupalOrgPayloadBlocks = (
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `Chromatic <https://drupal.org/chromatic|drupal.org> Statistics :chromatic::zap::drupal:`,
+      text: 'Chromatic <https://drupal.org/chromatic|drupal.org> Statistics :chromatic::zap::drupal:',
     },
   });
   blocks.push({
@@ -150,13 +150,10 @@ receiver.app.post('/triggers', async (request, response, next) => {
       config.channels.sandboxId :
       config.channels.openSourceId;
     const payload = await slackNotificationPayload(channelId, null, 'in_channel');
-    console.log(payload);
     return app.client.chat.postMessage(payload);
   } catch (error) {
     console.error(error);
   }
-
-  // return app.client.chat.postEphemeral(payload);
   response.status(200);
   return response.send();
 });
