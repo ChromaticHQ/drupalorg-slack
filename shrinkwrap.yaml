@@ -2,6 +2,7 @@ dependencies:
   '@slack/bolt': 2.0.1
   axios: 0.19.2
   cheerio: 1.0.0-rc.2
+  lowdb: 1.0.0
 devDependencies:
   eslint: 6.8.0
   eslint-config-airbnb-base: 14.1.0
@@ -1557,7 +1558,6 @@ packages:
     resolution:
       integrity: sha1-JAzQV4WpoY5WHcG0S0HHY+8ejbA=
   /graceful-fs/4.2.4:
-    dev: true
     resolution:
       integrity: sha512-WjKPNJF79dtJAVniUlGGWHYGz2jWxT6VhN/4m1NdkbZ2nOsEF+cI1Edgql5zCRhs/VsQYRvrXctxktVXZUkixw==
   /has-ansi/2.0.0:
@@ -1860,6 +1860,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-jvW33lBDej/cprToZe96pVy0gDY=
+  /is-promise/2.2.2:
+    dev: false
+    resolution:
+      integrity: sha512-+lP4/6lKUBfQjZ2pdxThZvLUAafmZb8OAxFb8XXtiQmS35INgr85hdOGoEs124ez1FCnZJt6jau/T+alh58QFQ==
   /is-redirect/1.0.0:
     dev: true
     engines:
@@ -2041,7 +2045,6 @@ packages:
     resolution:
       integrity: sha512-UejweD1pDoXu+AD825lWwp4ZGtSwgnpZxb3JDViD7StjQz+Nb/6l093lx4OQ0foGWNRoc19mWy7BzL+UAK2iVg==
   /lodash/4.17.15:
-    dev: true
     resolution:
       integrity: sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
   /loud-rejection/1.6.0:
@@ -2053,6 +2056,18 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-W0b4AUft7leIcPCG0Eghz5mOVR8=
+  /lowdb/1.0.0:
+    dependencies:
+      graceful-fs: 4.2.4
+      is-promise: 2.2.2
+      lodash: 4.17.15
+      pify: 3.0.0
+      steno: 0.4.4
+    dev: false
+    engines:
+      node: '>=4'
+    resolution:
+      integrity: sha512-2+x8esE/Wb9SQ1F9IHaYWfsC9FIecLOPrK4g17FGEayjUWH172H6nwicRovGvSE2CPZouc2MCIqCI7h9d+GftQ==
   /lowercase-keys/1.0.1:
     dev: true
     engines:
@@ -2563,7 +2578,6 @@ packages:
     resolution:
       integrity: sha1-7RQaasBDqEnqWISY59yosVMw6Qw=
   /pify/3.0.0:
-    dev: true
     engines:
       node: '>=4'
     resolution:
@@ -3040,6 +3054,12 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow=
+  /steno/0.4.4:
+    dependencies:
+      graceful-fs: 4.2.4
+    dev: false
+    resolution:
+      integrity: sha1-BxEFvfwobmYVwEA8J+nXtdy4Vcs=
   /string-width/1.0.2:
     dependencies:
       code-point-at: 1.1.0
@@ -3519,4 +3539,5 @@ specifiers:
   eslint: ^6.8.0
   eslint-config-airbnb-base: ^14.1.0
   eslint-plugin-import: ^2.20.2
+  lowdb: ^1.0.0
   npm-check: '*'

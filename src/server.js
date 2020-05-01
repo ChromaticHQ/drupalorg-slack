@@ -103,7 +103,7 @@ const drupalOrgPayloadBlocks = (
   return blocks;
 };
 
-async function slackNotificationPayload(channelId, userId, responseType) {
+const slackNotificationPayload = async (channelId, userId, responseType) => {
   const [chqNodeResponse, marketplaceRank] = await Promise.all([
     axios.get(`https://www.drupal.org/api-d7/node/${config.drupalOrganizationNodeId}.json`),
     getDrupalMarketplaceData(`${config.drupalOrgBaseUrl}${config.drupalOrgMarketplacePath}`),
