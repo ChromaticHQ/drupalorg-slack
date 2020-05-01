@@ -168,10 +168,7 @@ receiver.app.post('/triggers', async (request, response, next) => {
     return response.send();
   }
   try {
-    const channelId = config.debugMode
-      ? config.channels.sandboxId
-      : config.channels.defaultChannelId;
-    const payload = await slackNotificationPayload(channelId, null, 'in_channel');
+    const payload = await slackNotificationPayload(config.channels.channelId, null, 'in_channel');
     app.client.chat.postMessage(payload);
   } catch (error) {
     console.error(error);
