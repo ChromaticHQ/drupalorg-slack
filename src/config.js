@@ -1,4 +1,5 @@
 module.exports = {
+  verboseMode: process.env.VERBOSE_MODE === 'true',
   slackBotToken: process.env.SLACK_BOT_TOKEN,
   slackSigningSecret: process.env.SLACK_SIGNING_SECRET,
   orgToken: process.env.ORG_TOKEN,
