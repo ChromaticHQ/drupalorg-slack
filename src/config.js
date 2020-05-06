@@ -8,4 +8,9 @@ module.exports = {
   drupalOrgBaseUrl: 'https://www.drupal.org',
   drupalOrgMarketplacePath: '/drupal-services',
   slackNotificationText: process.env.SLACK_NOTIFICATION_TEXT,
+  keyValueDefaults: {
+    issueCreditCountMaxVarKey: 'org_issue_credit_count_max',
+    marketplaceRankMinVarKey: 'org_marketplace_rank_min',
+    projectsSupportedMaxVarKey: 'org_projects_supported_max',
+  },
 };

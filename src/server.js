@@ -1,10 +1,9 @@
 const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const low = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
 
 const config = require('./config');
+const datastore = require('./datastore');
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -15,40 +14,19 @@ const app = new App({
   logLevel: LogLevel.DEBUG,
 });
 
-// Setup a new database.
-// Persisted using async file storage.
-// Security note: the database is saved to the file `db.json` on the local filesystem.
-// It's deliberately placed in the `.data` directory which doesn't get copied if
-// someone remixes the project.
-const adapter = new FileSync('.data/db.json');
-const db = low(adapter);
-
-// Default key/value list.
-const issueCreditCountMaxVarKey = 'org_issue_credit_count_max';
-const marketplaceRankMinVarKey = 'org_marketplace_rank_min';
-const projectsSupportedMaxVarKey = 'org_projects_supported_max';
-
-// default data.
-db.defaults({
-  keyvalues: [
-    { name: issueCreditCountMaxVarKey, value: null },
-    { name: marketplaceRankMinVarKey, value: null },
-    { name: projectsSupportedMaxVarKey, value: null },
-  ],
-}).write();
-
 /**
  * Navigate Drupal.org marketplace pages until the specified
  * organization is found, then calculates the organization's
  * rank and return it.
  *
- * @param {marketplaceUrl} string URL of marketplace URL to
+ * @param {string} marketplaceUrl URL of marketplace URL to
  *   search for the orgnization.
- * @param {rankCount} int A running counter for determining
- *   an organization's rank across multiple pages.
- * @return {object} An object containing the organization's
- *   marketplace rank and the index of the page it was found
- *   on.
+ * @param {int} rankCount
+ *   A running counter for determining an organization's rank
+ *   across multiple pages.
+ * @return {object}
+ *   An object containing the organization's marketplace rank
+ *  and the index of the page it was found on.
  */
 function getDrupalMarketplaceData(marketplaceUrl, rankCount = 0) {
   return axios.get(marketplaceUrl)
@@ -78,21 +56,15 @@ function getDrupalMarketplaceData(marketplaceUrl, rankCount = 0) {
 const marketplaceRankPayloadBlock = (marketplaceData) => {
   const { rank: marketplaceRank, page: marketplacePage } = marketplaceData;
 
-  const historicalMarketplaceMin = db.get('keyvalues').find({ name: marketplaceRankMinVarKey }).value().value;
-  if (config.verboseMode) {
-    console.log(`${marketplaceRankMinVarKey}: ${historicalMarketplaceMin}`);
-  }
-  if (historicalMarketplaceMin === null || marketplaceRank < historicalMarketplaceMin) {
-    db.get('keyvalues')
-      .find({ name: marketplaceRankMinVarKey })
-      .assign({ value: marketplaceRank })
-      .write();
+  const marketplaceMin = datastore.variableGet(config.keyValueDefaults.marketplaceRankMinVarKey);
+  if (marketplaceMin === null || marketplaceRank < marketplaceMin) {
+    datastore.variableset(config.keyValueDefaults.marketplaceRankMinVarKey, marketplaceRank);
   }
 
   const marketplaceTextBase = `:shopping_trolley: <https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _*${marketplaceRank}*_`;
-  const marketplaceText = marketplaceRank <= historicalMarketplaceMin
+  const marketplaceText = marketplaceRank <= marketplaceMin
     ? `${marketplaceTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`
-    : `${marketplaceTextBase} :chart_with_downwards_trend: Down from a tracked high of _${historicalMarketplaceMin}_.`;
+    : `${marketplaceTextBase} :chart_with_downwards_trend: Down from a tracked high of _${marketplaceMin}_.`;
   return {
     type: 'section',
     text: {
@@ -102,26 +74,20 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
   };
 };
 
-const issueCreditPayloadBlock = (orgNode) => {
-  const orgDrupalIssueCreditCount = orgNode.field_org_issue_credit_count;
-
-  const historicalCreditCountMax = db.get('keyvalues').find({ name: issueCreditCountMaxVarKey }).value().value;
-  console.log(`historicalCreditCountMax: ${historicalCreditCountMax}`);
-  // If we don't have a record for issue_credit_count_max, or the new value from the API is
+const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
+  const creditCountMax = datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey);
+  // If we don't have a record for issue credits, or the new value from the API is
   // larger, we have a new high; update the record.
-  if (historicalCreditCountMax === null || orgDrupalIssueCreditCount > historicalCreditCountMax) {
-    if (config.verboseMode) {
-      console.log(`Updating ${issueCreditCountMaxVarKey}: ${orgDrupalIssueCreditCount}`);
-    }
-    db.get('keyvalues')
-      .find({ name: issueCreditCountMaxVarKey })
-      .assign({ value: orgDrupalIssueCreditCount })
-      .write();
+  if (creditCountMax === null || orgDrupalIssueCreditCount > creditCountMax) {
+    datastore.variableSet(
+      config.keyValueDefaults.issueCreditCountMaxVarKey,
+      orgDrupalIssueCreditCount,
+    );
   }
 
   const creditCountTextBase = `:female-technologist: Issue credit count: _*${orgDrupalIssueCreditCount}*_`;
-  const creditCountText = orgDrupalIssueCreditCount < historicalCreditCountMax
-    ? `${creditCountTextBase} :chart_with_downwards_trend: Down from a tracked high of _${historicalCreditCountMax}_.`
+  const creditCountText = orgDrupalIssueCreditCount < creditCountMax
+    ? `${creditCountTextBase} :chart_with_downwards_trend: Down from a tracked high of _${creditCountMax}_.`
     : `${creditCountTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
   return {
     type: 'section',
@@ -132,29 +98,20 @@ const issueCreditPayloadBlock = (orgNode) => {
   };
 };
 
-const projectsSupportedPayloadBlock = (orgNode) => {
-  const orgDrupalProjectsSupported = orgNode.projects_supported.length;
-
-  // @TODO: Track high count.
-  const historicalProjectsSupportedMax = db.get('keyvalues').find({ name: projectsSupportedMaxVarKey }).value().value;
-  console.log(`projectsSupportedMaxVarKey: ${historicalProjectsSupportedMax}`);
-
+const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
+  const projectsSupportedMax = datastore.variableGet(config.keyValueDefaults.projectsSupportedMaxVarKey);
   // If we don't have a record for org_projects_supported_max, or the new value from the API is
   // larger, we have a new high; update the record.
-  if (historicalProjectsSupportedMax === null
-      || orgDrupalProjectsSupported > historicalProjectsSupportedMax) {
-    if (config.verboseMode) {
-      console.log(`Updating ${projectsSupportedMaxVarKey}: ${orgDrupalProjectsSupported}`);
-    }
-    db.get('keyvalues')
-      .find({ name: projectsSupportedMaxVarKey })
-      .assign({ value: orgDrupalProjectsSupported })
-      .write();
+  if (projectsSupportedMax === null || orgDrupalProjectsSupported > projectsSupportedMax) {
+    datastore.variableSet(
+      config.keyValueDefaults.projectsSupportedMaxVarKey,
+      orgDrupalProjectsSupported,
+    );
   }
 
   const projectsSupportedTextBase = `:female-construction-worker: Supported projects: _*${orgDrupalProjectsSupported}*_`;
-  const projectsSupportedText = orgDrupalProjectsSupported < historicalProjectsSupportedMax
-    ? `${projectsSupportedTextBase} :chart_with_downwards_trend: Down from a tracked high of _${historicalProjectsSupportedMax}_.`
+  const projectsSupportedText = orgDrupalProjectsSupported < projectsSupportedMax
+    ? `${projectsSupportedTextBase} :chart_with_downwards_trend: Down from a tracked high of _${projectsSupportedMax}_.`
     : `${projectsSupportedTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
   return {
     type: 'section',
@@ -167,6 +124,7 @@ const projectsSupportedPayloadBlock = (orgNode) => {
 
 const drupalOrgPayloadBlocks = (orgNode, marketplaceData) => {
   const blocks = [];
+  // Header.
   blocks.push({
     type: 'section',
     text: {
@@ -178,11 +136,10 @@ const drupalOrgPayloadBlocks = (orgNode, marketplaceData) => {
     type: 'divider',
   });
 
+  // Content.
   blocks.push(marketplaceRankPayloadBlock(marketplaceData));
-
-  blocks.push(issueCreditPayloadBlock(orgNode));
-
-  blocks.push(projectsSupportedPayloadBlock(orgNode));
+  blocks.push(issueCreditPayloadBlock(orgNode.field_org_issue_credit_count));
+  blocks.push(projectsSupportedPayloadBlock(orgNode.projects_supported.length));
 
   // Footer.
   blocks.push({
