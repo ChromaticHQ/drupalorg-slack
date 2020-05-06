@@ -13,9 +13,10 @@ const db = low(adapter);
 // default data.
 db.defaults({
   keyvalues: [
-    { name: config.issueCreditCountMaxVarKey, value: null },
-    { name: config.marketplaceRankMinVarKey, value: null },
-    { name: config.projectsSupportedMaxVarKey, value: null },
+    { name: config.keyValueDefaults.issueCreditCountMaxVarKey, value: null },
+    { name: config.keyValueDefaults.marketplaceRankMinVarKey, value: null },
+    { name: config.keyValueDefaults.projectsSupportedMaxVarKey, value: null },
+    { name: config.keyValueDefaults.caseStudiesPublishedMaxVarKey, value: null },
   ],
 }).write();
 
@@ -26,12 +27,16 @@ db.defaults({
  *   Variable name to retrieve.
  * @param  {string} collectionName
  *   Collection to retrieve the specified variable from.
- * @return {string}
+ * @return {mixed}
  *   The retrieved variable value.
  */
 const variableGet = (variableName, collectionName = 'keyvalues') => {
-  console.log(`variableName: ${variableName}`);
-  const { value } = db.get(collectionName).find({ name: variableName }).value();
+  const retrievedVariable = db.get(collectionName).find({ name: variableName });
+  if (retrievedVariable.value() === undefined) {
+    return null;
+  }
+
+  const { value } = retrievedVariable.value();
   if (config.verboseMode) {
     console.log(`${variableName}: ${value}`);
   }

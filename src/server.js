@@ -58,7 +58,7 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
 
   const marketplaceMin = datastore.variableGet(config.keyValueDefaults.marketplaceRankMinVarKey);
   if (marketplaceMin === null || marketplaceRank < marketplaceMin) {
-    datastore.variableset(config.keyValueDefaults.marketplaceRankMinVarKey, marketplaceRank);
+    datastore.variableSet(config.keyValueDefaults.marketplaceRankMinVarKey, marketplaceRank);
   }
 
   const marketplaceTextBase = `:shopping_trolley: <https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _*${marketplaceRank}*_`;
@@ -99,8 +99,10 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
 };
 
 const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
-  const projectsSupportedMax = datastore.variableGet(config.keyValueDefaults.projectsSupportedMaxVarKey);
-  // If we don't have a record for org_projects_supported_max, or the new value from the API is
+  const projectsSupportedMax = datastore.variableGet(
+    config.keyValueDefaults.projectsSupportedMaxVarKey,
+  );
+  // If we don't have a record for projects supported, or the new value from the API is
   // larger, we have a new high; update the record.
   if (projectsSupportedMax === null || orgDrupalProjectsSupported > projectsSupportedMax) {
     datastore.variableSet(
@@ -109,7 +111,7 @@ const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
     );
   }
 
-  const projectsSupportedTextBase = `:female-construction-worker: Supported projects: _*${orgDrupalProjectsSupported}*_`;
+  const projectsSupportedTextBase = `:female-construction-worker: Projects supported: _*${orgDrupalProjectsSupported}*_`;
   const projectsSupportedText = orgDrupalProjectsSupported < projectsSupportedMax
     ? `${projectsSupportedTextBase} :chart_with_downwards_trend: Down from a tracked high of _${projectsSupportedMax}_.`
     : `${projectsSupportedTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
@@ -122,7 +124,33 @@ const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
   };
 };
 
-const drupalOrgPayloadBlocks = (orgNode, marketplaceData) => {
+const caseStudiesPayloadBlock = (caseStudiesCount) => {
+  const caseStudiesPublishedMax = datastore.variableGet(
+    config.keyValueDefaults.caseStudiesPublishedMaxVarKey,
+  );
+  // If we don't have a record for case studies, or the new value from the API is
+  // larger, we have a new high; update the record.
+  if (caseStudiesPublishedMax === null || caseStudiesCount > caseStudiesPublishedMax) {
+    datastore.variableSet(
+      config.keyValueDefaults.caseStudiesPublishedMax,
+      caseStudiesCount,
+    );
+  }
+
+  const caseStudiesTextBase = `:blue_book: Case studies published: _*${caseStudiesCount}*_`;
+  const caseStudiesText = caseStudiesCount < caseStudiesPublishedMax
+    ? `${caseStudiesTextBase} :chart_with_downwards_trend: Down from a tracked high of _${caseStudiesPublishedMax}_.`
+    : `${caseStudiesTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: caseStudiesText,
+    },
+  };
+};
+
+const drupalOrgPayloadBlocks = (orgNode, marketplaceData, caseStudiesResponse) => {
   const blocks = [];
   // Header.
   blocks.push({
@@ -140,6 +168,7 @@ const drupalOrgPayloadBlocks = (orgNode, marketplaceData) => {
   blocks.push(marketplaceRankPayloadBlock(marketplaceData));
   blocks.push(issueCreditPayloadBlock(orgNode.field_org_issue_credit_count));
   blocks.push(projectsSupportedPayloadBlock(orgNode.projects_supported.length));
+  blocks.push(caseStudiesPayloadBlock(caseStudiesResponse.list.length));
 
   // Footer.
   blocks.push({
@@ -158,9 +187,10 @@ const drupalOrgPayloadBlocks = (orgNode, marketplaceData) => {
 };
 
 const slackNotificationPayload = async (channelId, userId, responseType) => {
-  const [orgNodeResponse, marketplaceData] = await Promise.all([
+  const [orgNodeResponse, marketplaceData, caseStudiesResponse] = await Promise.all([
     axios.get(`https://www.drupal.org/api-d7/node/${config.drupalOrganizationNodeId}.json`),
     getDrupalMarketplaceData(`${config.drupalOrgBaseUrl}${config.drupalOrgMarketplacePath}`),
+    axios.get(`https://www.drupal.org/api-d7/node.json?type=casestudy&taxonomy_vocabulary_5=20236&field_case_organizations=${config.drupalOrganizationNodeId}`),
   ]);
 
   return {
@@ -174,6 +204,7 @@ const slackNotificationPayload = async (channelId, userId, responseType) => {
         blocks: drupalOrgPayloadBlocks(
           orgNodeResponse.data,
           marketplaceData,
+          caseStudiesResponse.data,
         ),
       },
     ],
@@ -219,7 +250,7 @@ receiver.app.post('/triggers', async (request, response, next) => {
     return response.send();
   }
   try {
-    const payload = await slackNotificationPayload(config.channels.channelId, null, 'in_channel');
+    const payload = await slackNotificationPayload(config.channelId, null, 'in_channel');
     app.client.chat.postMessage(payload);
   } catch (error) {
     console.error(error);

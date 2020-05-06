@@ -12,5 +12,6 @@ module.exports = {
     issueCreditCountMaxVarKey: 'org_issue_credit_count_max',
     marketplaceRankMinVarKey: 'org_marketplace_rank_min',
     projectsSupportedMaxVarKey: 'org_projects_supported_max',
+    caseStudiesPublishedMaxVarKey: 'org_case_studies_max',
   },
 };
