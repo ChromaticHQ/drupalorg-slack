@@ -323,7 +323,7 @@ receiver.app.post('/triggers', async (request, response, next) => {
   }
   try {
     const payload = await slackNotificationPayload(config.channelId, null, 'in_channel');
-    app.client.chat.postMessage({});
+    app.client.chat.postMessage(payload);
   } catch (error) {
     status = 500
     message = error.message;
