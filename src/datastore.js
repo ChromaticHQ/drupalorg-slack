@@ -10,7 +10,7 @@ const config = require('./config');
 const adapter = new FileSync('.data/db.json');
 const db = low(adapter);
 
-// default data.
+// Default data.
 db.defaults({
   keyvalues: [
     { name: config.keyValueDefaults.issueCreditCountMaxVarKey, value: null },
