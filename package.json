@@ -1,6 +1,6 @@
 {
   "name": "drupalorg-slack",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "App to pull an organization's data from Drupal.org and send to Slack.",
   "author": { 
     "name" : "Mark Dorison", 
