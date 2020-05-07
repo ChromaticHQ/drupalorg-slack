@@ -314,18 +314,23 @@ app.command('/dorank', async ({ command, ack, respond }) => {
  * for a weekly notification in the configured channel.
  */
 receiver.app.post('/triggers', async (request, response, next) => {
+  let status = 200;
+  let message = 'OK';
+
   if (request.query.token !== config.orgToken) {
     response.status(403);
     return response.send();
   }
   try {
     const payload = await slackNotificationPayload(config.channelId, null, 'in_channel');
-    app.client.chat.postMessage(payload);
+    app.client.chat.postMessage({});
   } catch (error) {
+    status = 500
+    message = error.message;
     console.error(error);
   }
-  response.status(200);
-  return response.send();
+  response.status(status);
+  return response.send(message);
 });
 
 receiver.app.get('/', (_, res) => {
