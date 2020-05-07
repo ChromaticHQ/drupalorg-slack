@@ -1,12 +1,31 @@
 {
   "name": "drupalorg-slack",
-  "version": "0.1.0",
-  "description": "CHQ Drupal.org/Slack integration",
+  "version": "1.0",
+  "description": "App to pull an organization's data from Drupal.org and send to Slack.",
+  "author": { 
+    "name" : "Mark Dorison", 
+    "email" : "mark@chromatichq.com", 
+    "url" : "https://chromatichq.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express",
+    "slack",
+    "drupal"
+  ],
+  "repository": {
+    "url": "https://glitch.com/edit/#!/chq-drupal-org"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node src/server.js",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint --fix '**/*.js'"
+  },
+  "engines": {
+    "node": "12.x"
   },
   "dependencies": {
     "axios": "^0.19.2",
@@ -14,18 +33,6 @@
     "@slack/bolt": "^2.0.1",
     "lowdb": "^1.0.0"
   },
-  "engines": {
-    "node": "12.x"
-  },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/chq-drupal-org"
-  },
-  "license": "MIT",
-  "keywords": [
-    "node",
-    "glitch",
-    "express"
-  ],
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
