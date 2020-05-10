@@ -32,10 +32,11 @@ function getDrupalMarketplaceData(marketplaceUrl, rankCount = 0) {
       const html = marketplaceResponse.data;
       const $ = cheerio.load(html, { xmlMode: false });
       const orgsOnPage = $('.view-drupalorg-organizations .view-content').children().length;
+      const orgNodeHtmlElement = $(`#node-${config.drupalOrganizationNodeId}`);
       // Determine if the organization node id is listed on the current page.
-      if ($(`#node-${config.drupalOrganizationNodeId}`).length) {
-        // Find the position of organization node id on the page.
-        const foundRank = rankCount + $(`#node-${config.drupalOrganizationNodeId}`).parent().prevAll().length + 1;
+      if (orgNodeHtmlElement.length) {
+        // Find the position of the organization node id on the page.
+        const foundRank = rankCount + orgNodeHtmlElement.parent().prevAll().length + 1;
         return {
           rank: foundRank,
           page: Math.floor(foundRank / orgsOnPage),
@@ -282,7 +283,7 @@ const slackErrorPayload = (channelId, userId, responseType, error) => {
     channel: channelId,
     user: userId,
     response_type: responseType,
-    text: `An unknown error has occurred: \`${error}\``,
+    text: `An error has occurred: \`${error}\``,
   };
   return payload;
 };
@@ -305,7 +306,7 @@ app.command('/dorank', async ({ command, ack, respond }) => {
   } catch (error) {
     console.error(error);
     payload = await slackErrorPayload(command.channel_id, command.user_id, 'ephemeral', error);
-    return respond(payload);
+    return respond(payload).catch(console.error);
   }
 });
 
@@ -323,9 +324,9 @@ receiver.app.post('/triggers', async (request, response, next) => {
   }
   try {
     const payload = await slackNotificationPayload(config.channelId, null, 'in_channel');
-    app.client.chat.postMessage(payload);
+    await app.client.chat.postMessage(payload);
   } catch (error) {
-    status = 500
+    status = 500;
     message = error.message;
     console.error(error);
   }
