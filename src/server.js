@@ -1,9 +1,9 @@
-const config = require('./config');
-
+const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
+const config = require('./config');
+const datastore = require('./datastore');
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -14,61 +14,204 @@ const app = new App({
   logLevel: LogLevel.DEBUG,
 });
 
-/* Add functionality here */
-
-// function getDrupalOrgNode(nid) {
-//   return axios.get(`https://www.drupal.org/api-d7/node/${nid}.json`);
-// }
-
+/**
+ * Navigate Drupal.org marketplace pages until the specified organization is
+ * found, then calculates the organization's rank and return it.
+ *
+ * @param {string}  marketplaceUrl  URL of marketplace URL to
+ *   search for the orgnization.
+ * @param {int}  rankCount  A running counter for determining an organization's rank
+ *   across multiple pages.
+ *
+ * @return {object}  An object containing the organization's marketplace rank
+ *   and the index of the page it was found on.
+ */
 function getDrupalMarketplaceData(marketplaceUrl, rankCount = 0) {
   return axios.get(marketplaceUrl)
     .then((marketplaceResponse) => {
       const html = marketplaceResponse.data;
       const $ = cheerio.load(html, { xmlMode: false });
-      console.log($('.view-drupalorg-organizations .view-content').children().length);
-      console.log($(`#node-${config.chromaticDrupalOrgNid} h2`).text());
-      // Determine if Chromatic is listed on the current page.
-      if ($(`#node-${config.chromaticDrupalOrgNid}`).length) {
-        // @TODO: Get count.
-        console.log('FOUND');
-        // Find the position of Chromatic on the page.
-        const foundRank = rankCount + $(`#node-${config.chromaticDrupalOrgNid}`).parent().prevAll().length + 1;
-        return foundRank;
+      const orgsOnPage = $('.view-drupalorg-organizations .view-content').children().length;
+      const orgNodeHtmlElement = $(`#node-${config.drupalOrganizationNodeId}`);
+      // Determine if the organization node id is listed on the current page.
+      if (orgNodeHtmlElement.length) {
+        // Find the position of the organization node id on the page.
+        const foundRank = rankCount + orgNodeHtmlElement.parent().prevAll().length + 1;
+        return {
+          rank: foundRank,
+          page: Math.floor(foundRank / orgsOnPage),
+        };
       }
-      // Chromatic is not on the current page, go to the next page.
+      // The specified organization is not on the current page, go to the next page.
       const nextPageUrl = config.drupalOrgBaseUrl + $('.pager .pager-next a').attr('href');
-      console.log(nextPageUrl);
-      rankCount += $('.view-drupalorg-organizations .view-content').children().length;
-      return getDrupalMarketplaceData(nextPageUrl, rankCount);
+      const updatedRank = rankCount + orgsOnPage;
+      return getDrupalMarketplaceData(nextPageUrl, updatedRank);
     })
     .catch((error) => {
       console.error(error);
     });
 }
 
-const drupalOrgPayloadBlocks = (chqDrupalIssueCreditCount, chqDrupalProjectsSupported, marketplaceRank, marketplacePage) => {
+/**
+ * Prepare Slack block payload with marketplace data.
+ *
+ * @param   {object}  marketplaceData  Object containing organization
+ *   marketplace data including rank and page.
+ *
+ * @return  {object}  Slack payload block object.
+ */
+const marketplaceRankPayloadBlock = (marketplaceData) => {
+  const { rank: marketplaceRank, page: marketplacePage } = marketplaceData;
+
+  const marketplaceMin = datastore.variableGet(config.keyValueDefaults.marketplaceRankMinVarKey);
+  if (marketplaceMin === null || marketplaceRank < marketplaceMin) {
+    datastore.variableSet(config.keyValueDefaults.marketplaceRankMinVarKey, marketplaceRank);
+  }
+
+  const marketplaceTextBase = `:shopping_trolley: <https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _*${marketplaceRank}*_`;
+  const marketplaceText = marketplaceRank <= marketplaceMin
+    ? `${marketplaceTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`
+    : `${marketplaceTextBase} :chart_with_downwards_trend: Down from a tracked high of _${marketplaceMin}_.`;
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: marketplaceText,
+    },
+  };
+};
+
+/**
+ * Prepare Slack block payload with issue credit data.
+ *
+ * @param   {int}  orgDrupalIssueCreditCount  The number of issues credited to
+ *   an orgnization.
+ *
+ * @return  {object}  Slack payload block object.
+ */
+const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
+  const creditCountMax = datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey);
+  // If we don't have a record for issue credits, or the new value from the API is
+  // larger, we have a new high; update the record.
+  if (creditCountMax === null || orgDrupalIssueCreditCount > creditCountMax) {
+    datastore.variableSet(
+      config.keyValueDefaults.issueCreditCountMaxVarKey,
+      orgDrupalIssueCreditCount,
+    );
+  }
+
+  const creditCountTextBase = `:female-technologist: Issue credit count: _*${orgDrupalIssueCreditCount}*_`;
+  const creditCountText = orgDrupalIssueCreditCount < creditCountMax
+    ? `${creditCountTextBase} :chart_with_downwards_trend: Down from a tracked high of _${creditCountMax}_.`
+    : `${creditCountTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: creditCountText,
+    },
+  };
+};
+
+/**
+ * Prepare Slack block payload with supported project data.
+ *
+ * @param   {int}  orgDrupalProjectsSupported  The number of supported projects
+ *   credited to an organization.
+ *
+ * @return  {object}  Slack payload block object.
+ */
+const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
+  const projectsSupportedMax = datastore.variableGet(
+    config.keyValueDefaults.projectsSupportedMaxVarKey,
+  );
+  // If we don't have a record for projects supported, or the new value from the API is
+  // larger, we have a new high; update the record.
+  if (projectsSupportedMax === null || orgDrupalProjectsSupported > projectsSupportedMax) {
+    datastore.variableSet(
+      config.keyValueDefaults.projectsSupportedMaxVarKey,
+      orgDrupalProjectsSupported,
+    );
+  }
+
+  const projectsSupportedTextBase = `:female-construction-worker: Projects supported: _*${orgDrupalProjectsSupported}*_`;
+  const projectsSupportedText = orgDrupalProjectsSupported < projectsSupportedMax
+    ? `${projectsSupportedTextBase} :chart_with_downwards_trend: Down from a tracked high of _${projectsSupportedMax}_.`
+    : `${projectsSupportedTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: projectsSupportedText,
+    },
+  };
+};
+
+/**
+ * Prepare Slack block payload with case study data.
+ *
+ * @param   {int}  caseStudiesCount  The number of case studies credited to an
+ *   organization.
+ *
+ * @return  {object}  Slack payload block object.
+ */
+const caseStudiesPayloadBlock = (caseStudiesCount) => {
+  const caseStudiesPublishedMax = datastore.variableGet(
+    config.keyValueDefaults.caseStudiesPublishedMaxVarKey,
+  );
+  // If we don't have a record for case studies, or the new value from the API is
+  // larger, we have a new high; update the record.
+  if (caseStudiesPublishedMax === null || caseStudiesCount > caseStudiesPublishedMax) {
+    datastore.variableSet(
+      config.keyValueDefaults.caseStudiesPublishedMax,
+      caseStudiesCount,
+    );
+  }
+
+  const caseStudiesTextBase = `:blue_book: Case studies published: _*${caseStudiesCount}*_`;
+  const caseStudiesText = caseStudiesCount < caseStudiesPublishedMax
+    ? `${caseStudiesTextBase} :chart_with_downwards_trend: Down from a tracked high of _${caseStudiesPublishedMax}_.`
+    : `${caseStudiesTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: caseStudiesText,
+    },
+  };
+};
+
+/**
+ * Compiles all payload blocks for inclusion in a Slack message attachment.
+ *
+ * @param   {object}  orgNode  A drupal.org organization node object.
+ * @param   {object}  marketplaceData  The HTML contents of a Drupal.org
+ *   marketplace page.
+ * @param   {object}  caseStudiesResponse  Response data from Drupal.org's
+ *   API containing case studies.
+ *
+ * @return  {object}  An object containing multiple Slack Block Kit blocks to
+ *   attach to a message object.
+ */
+const drupalOrgPayloadBlocks = (orgNode, marketplaceData, caseStudiesResponse) => {
   const blocks = [];
+  // Header.
   blocks.push({
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `<https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: ${marketplaceRank}`,
+      text: config.slackNotificationText,
     },
   });
   blocks.push({
-    type: 'section',
-    text: {
-      type: 'mrkdwn',
-      text: `Issue credit count: ${chqDrupalIssueCreditCount}`,
-    },
+    type: 'divider',
   });
-  blocks.push({
-    type: 'section',
-    text: {
-      type: 'mrkdwn',
-      text: `Supported projects: ${chqDrupalProjectsSupported}`,
-    },
-  });
+
+  // Content.
+  blocks.push(marketplaceRankPayloadBlock(marketplaceData));
+  blocks.push(issueCreditPayloadBlock(orgNode.field_org_issue_credit_count));
+  blocks.push(projectsSupportedPayloadBlock(orgNode.projects_supported.length));
+  blocks.push(caseStudiesPayloadBlock(caseStudiesResponse.list.length));
 
   // Footer.
   blocks.push({
@@ -86,79 +229,114 @@ const drupalOrgPayloadBlocks = (chqDrupalIssueCreditCount, chqDrupalProjectsSupp
   return blocks;
 };
 
-// Listen for a slash command.
+/**
+ * Generate a Slack message payload object.
+ *
+ * @param   {string}  channelId  A Slack channel ID.
+ * @param   {string}  userId  A user ID from the requesting Slack user, if
+ *   applicable.
+ * @param   {string}  responseType  A Slack message type, either 'in_channel',
+ *   or 'ephemeral'.
+ *
+ * @return  {object}  A fully completed object to send a message to Slack.
+ */
+const slackNotificationPayload = async (channelId, userId, responseType) => {
+  const [orgNodeResponse, marketplaceData, caseStudiesResponse] = await Promise.all([
+    axios.get(`https://www.drupal.org/api-d7/node/${config.drupalOrganizationNodeId}.json`),
+    getDrupalMarketplaceData(`${config.drupalOrgBaseUrl}${config.drupalOrgMarketplacePath}`),
+    axios.get(`https://www.drupal.org/api-d7/node.json?type=casestudy&taxonomy_vocabulary_5=20236&field_case_organizations=${config.drupalOrganizationNodeId}`),
+  ]);
+
+  return {
+    token: config.slackBotToken,
+    channel: channelId,
+    user: userId,
+    response_type: responseType,
+    text: '',
+    attachments: [
+      {
+        blocks: drupalOrgPayloadBlocks(
+          orgNodeResponse.data,
+          marketplaceData,
+          caseStudiesResponse.data,
+        ),
+      },
+    ],
+  };
+};
+
+/**
+ * Generates a payload to send a descriptive error to Slack.
+ *
+ * @param   {string}  channelId  A Slack channel ID.
+ * @param   {string}  userId  A user ID from the requesting Slack user, if
+ *   applicable.
+ * @param   {string}  responseType  A Slack message type, either 'in_channel',
+ *   or 'ephemeral'.
+ * @param   {string}  error  An error message.
+ *
+ * @return  {object}  A fully completed object to send a message to Slack.
+ */
+const slackErrorPayload = (channelId, userId, responseType, error) => {
+  const payload = {
+    token: config.slackBotToken,
+    channel: channelId,
+    user: userId,
+    response_type: responseType,
+    text: `An error has occurred: \`${error}\``,
+  };
+  return payload;
+};
+
+/**
+ * Listens for a Slack 'slash' command.
+ */
 app.command('/dorank', async ({ command, ack, respond }) => {
   // Acknowledge Slack command request.
   await ack();
 
-  const drupalOrgMarketplacePageOne = `${config.drupalOrgBaseUrl}${config.drupalOrgMarketplacePath}`;
-  try {
-    const [chqNodeResponse, marketplaceRank] = await Promise.all([
-      axios.get(`https://www.drupal.org/api-d7/node/${config.chromaticDrupalOrgNid}.json`),
-      getDrupalMarketplaceData(drupalOrgMarketplacePageOne),
-    ]);
-
-    const chqDrupalIssueCreditCount = chqNodeResponse.data.field_org_issue_credit_count;
-    const chqDrupalProjectsSupported = chqNodeResponse.data.projects_supported.length;
-
+  if (config.verboseMode) {
     console.log(command);
-    const payload = {
-      token: config.slackBotToken,
-      channel: command.channel_id,
-      user: command.user_id,
-      response_type: 'ephemeral',
-      text: 'Chromatic `<https://drupal.org/chromatic|drupal.org>` Statistics :chromatic::drupal:',
-      attachments: [
-        {
-          blocks: drupalOrgPayloadBlocks(chqDrupalIssueCreditCount, chqDrupalProjectsSupported, marketplaceRank, Math.floor(marketplaceRank / 25)),
-        },
-      ],
-    };
+  }
+
+  let payload;
+  try {
+    payload = await slackNotificationPayload(command.channel_id, command.user_id, 'ephemeral');
     return await respond(payload);
   } catch (error) {
     console.error(error);
+    payload = await slackErrorPayload(command.channel_id, command.user_id, 'ephemeral', error);
+    return respond(payload).catch(console.error);
   }
 });
 
-// This endpoint is triggered by a non-Slack event like a Jenkins job for a
-// weekly notification in the configured announcements channel.
-receiver.app.post('/triggers', (request, response, next) => {
-  if (request.query.token !== config.chromaticToken) {
+/**
+ * Endpoint that listens for a trigger by a non-Slack event like a Jenkins job
+ * for a weekly notification in the configured channel.
+ */
+receiver.app.post('/triggers', async (request, response, next) => {
+  let status = 200;
+  let message = 'OK';
+
+  if (request.query.token !== config.orgToken) {
     response.status(403);
     return response.send();
   }
-
-  axios
-    .get(config.bamboo.whosOutUrl, config.bamboo.apiRequestConfig)
-    .then((response) => {
-      if (response.status === 200) {
-        // Allow overriding of #chromatic default with sandbox channel.
-        const channelId = config.debugMode ? config.channels.sandboxId : config.channels.announcementsId;
-        console.log(`Debug mode: ${config.debugMode ? 'ON' : 'OFF'}`);
-        console.log(`Sending notification to channel: ${channelId}`);
-
-        payload = {
-          channel: channelId,
-          text: config.whosOutMessageText,
-          attachments: [
-            {
-              blocks: whosOutPayloadBlocks(response),
-            },
-          ],
-        };
-        return slackWebClient.chat.postMessage(payload);
-      }
-      return next();
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  response.status(200);
-  return response.send();
+  try {
+    const payload = await slackNotificationPayload(config.channelId, null, 'in_channel');
+    await app.client.chat.postMessage(payload);
+  } catch (error) {
+    status = 500;
+    message = error.message;
+    console.error(error);
+  }
+  response.status(status);
+  return response.send(message);
 });
 
 receiver.app.get('/', (_, res) => {
-  res.status(200).send(); // respond 200 OK to the default health check method
+  // Respond 200 OK to the default health check method.
+  res.status(200).send();
 });
 
 (async () => {
