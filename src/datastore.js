@@ -10,6 +10,7 @@ const config = require('./config');
 const adapter = new FileSync('.data/db.json');
 const db = low(adapter);
 
+// Add upsert functionality to lowdb.
 db._.mixin({
   upsert: function(collection, obj, key) {
     key = key || 'id';
