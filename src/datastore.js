@@ -10,6 +10,20 @@ const config = require('./config');
 const adapter = new FileSync('.data/db.json');
 const db = low(adapter);
 
+db._.mixin({
+  upsert: function(collection, obj, key) {
+    key = key || 'id';
+    for (var i = 0; i < collection.length; i++) {
+      var el = collection[i];
+      if(el[key] === obj[key]){
+        collection[i] = obj;
+        return collection;
+      }
+    };
+    collection.push(obj);
+  }
+});
+
 // Default data.
 db.defaults({
   keyvalues: [
@@ -58,8 +72,7 @@ const variableSet = (variableName, variableValue, collectionName = 'keyvalues') 
     console.log(`Updating ${variableName}: ${variableValue}`);
   }
   db.get(collectionName)
-    .find({ name: variableName })
-    .assign({ value: variableValue })
+    .upsert({ name: variableName, value: variableValue }, 'name')
     .write();
 };
 

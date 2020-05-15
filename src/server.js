@@ -163,7 +163,7 @@ const caseStudiesPayloadBlock = (caseStudiesCount) => {
   // larger, we have a new high; update the record.
   if (caseStudiesPublishedMax === null || caseStudiesCount > caseStudiesPublishedMax) {
     datastore.variableSet(
-      config.keyValueDefaults.caseStudiesPublishedMax,
+      config.keyValueDefaults.caseStudiesPublishedMaxVarKey,
       caseStudiesCount,
     );
   }
