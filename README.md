@@ -1,14 +1,12 @@
 # Drupal.org / Slack Integration
 
 [![Remix on
-Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/chq-drupal-org)
-
-This Slack app uses Drupal.org's API to retrieve a number of data points that
-are relevant to an organization's [Drupal
-Marketplace](http://drupal.org/marketplace) rank including issue credit count,
-number of projects supported, and case studies submitted, as well as the
-marketplace rank itself. It also keeps track of the "high scores" for each of
-these values.
+Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/drupalorg-slack)
+The `drupalorg-slack` Slack app uses Drupal.org's API to retrieve a number of
+data points that are relevant to an organization's [DrupallMarketplace](http://drupal.org/marketplace) rank and report it into your Slack
+workspace. The data points include issue credit count, number of projects
+supported, and case studies submitted, as well as the marketplace rank itself.
+It also keeps track of the "high scores" for each of these values..
 
 The functionality is composed of two pieces, the slash command, and an external
 trigger:
@@ -19,17 +17,17 @@ trigger:
 * The external trigger allows for a request from outside of Slack to trigger the
   app. This is useful for scheduling the app to notify a channel on a regular
   basis.
-
-Screenshot TK.
+![drupalorg-slack app screenshot](https://user-images.githubusercontent.com/20355/82163642-7388d200-987a-11ea-92e2-7aa77e7e5685.png).
 
 ## Getting Started
-
-1. [Remix on Glitch](https://glitch.com/edit/#!/remix/chq-drupal-org) or fork
-   this repo.
+1. [Remix on Glitch](https://glitch.com/edit/#!/remix/chq-drupal-org) (easiest
+   for a quick start) or clone this repo and get the app running somewhere that
+   it will be accessible.
 1. Copy [`.env.sample`](.env.sample) to `.env`.
 1. Create a new app in the [Slack "Your Apps"
    dashboard](https://api.slack.com/apps).
-1. Create slash command TK.
+1. Create a slash command and point its request URL to your app:
+   `https://your-app-name-here.glitch.me/slack/events`.
 1. Configure the required environment variables in `.env`.
     1. `SLACK_SIGNING_SECRET`: Navigate to the "Basic Information" tab and use
        the "Signing Secret".
