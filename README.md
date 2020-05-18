@@ -1,12 +1,14 @@
-# Drupal.org / Slack Integration
+# Drupal.org / Slack App
 
 [![Remix on
 Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/drupalorg-slack)
+
 The `drupalorg-slack` Slack app uses Drupal.org's API to retrieve a number of
-data points that are relevant to an organization's [DrupallMarketplace](http://drupal.org/marketplace) rank and report it into your Slack
+data points that are relevant to an organization's [Drupal
+Marketplace](http://drupal.org/marketplace) rank and report it into your Slack
 workspace. The data points include issue credit count, number of projects
 supported, and case studies submitted, as well as the marketplace rank itself.
-It also keeps track of the "high scores" for each of these values..
+It also keeps track of the "high scores" for each of these values.
 
 The functionality is composed of two pieces, the slash command, and an external
 trigger:
@@ -17,9 +19,11 @@ trigger:
 * The external trigger allows for a request from outside of Slack to trigger the
   app. This is useful for scheduling the app to notify a channel on a regular
   basis.
-![drupalorg-slack app screenshot](https://user-images.githubusercontent.com/20355/82163642-7388d200-987a-11ea-92e2-7aa77e7e5685.png).
+
+![drupalorg-slack app screenshot](https://user-images.githubusercontent.com/20355/82163642-7388d200-987a-11ea-92e2-7aa77e7e5685.png)
 
 ## Getting Started
+
 1. [Remix on Glitch](https://glitch.com/edit/#!/remix/chq-drupal-org) (easiest
    for a quick start) or clone this repo and get the app running somewhere that
    it will be accessible.
@@ -27,7 +31,7 @@ trigger:
 1. Create a new app in the [Slack "Your Apps"
    dashboard](https://api.slack.com/apps).
 1. Create a slash command and point its request URL to your app:
-   `https://your-app-name-here.glitch.me/slack/events`.
+   `https://your-app-name-here.glitch.me/slack/events`
 1. Configure the required environment variables in `.env`.
     1. `SLACK_SIGNING_SECRET`: Navigate to the "Basic Information" tab and use
        the "Signing Secret".
@@ -35,8 +39,8 @@ trigger:
        User OAuth Access Token" value.
     1. `DRUPAL_ORG_NODE_ID`: Your organization's node id from Drupal.org.
 1. Configure the optional environment variables in `.env`. These values are
-   utilized when the app is triggered from an external source (such as Jenkins)
-   and not from a "slash command" from within Slack.
+   utilized when the app is triggered from an external source such as a cron or
+   Jenkins job as opposed to a "slash command" from within Slack.
     1. `DEFAULT_CHANNEL_ID / SANDBOX_CHANNEL_ID` (optional): Populate these
        values with the Slack channel ID's where you want the app to post
        notifations to. The easiest way to get these values is to load your Slack
@@ -45,8 +49,7 @@ trigger:
 1. Customize default values:
     1. `DEBUG_MODE`: Setting this value to `true` results in the
        `SANDBOX_CHANNEL_ID` being used instead of the `DEFAULT_CHANNEL_ID`.
-    1. `VERBOSE_MODE`: TK.
-    1. `SLACK_NOTIFICATION_TEXT`: TK.
+    1. `VERBOSE_MODE`: Set to `true` to enable verbose console logging.
 
 ## Example Trigger Request
 
@@ -54,5 +57,5 @@ To trigger the app from outside of Slack, a POST request TK:
 
 ```bash
 curl --fail -X POST \
-  'https://chq-drupal-org.glitch.me/triggers?token=YOUR_ORG_TOKEN_HERE'
+  'https://your-app-name-here.glitch.me/triggers?token=YOUR_ORG_TOKEN_HERE'
 ```
