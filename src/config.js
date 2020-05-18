@@ -7,7 +7,11 @@ module.exports = {
   drupalOrganizationNodeId: process.env.DRUPAL_ORG_NODE_ID,
   drupalOrgBaseUrl: 'https://www.drupal.org',
   drupalOrgMarketplacePath: '/drupal-services',
-  slackNotificationText: process.env.SLACK_NOTIFICATION_TEXT,
+  slackNotificationText: {
+    primaryText: process.env.SLACK_NOTIFICATION_TEXT,
+    trackedHighText: ':chart_with_upwards_trend: _*An all-time tracked high*_. :sports_medal:',
+    downFromTrackedHighText: ':chart_with_downwards_trend: Down from a tracked high of',
+  },
   keyValueDefaults: {
     issueCreditCountMaxVarKey: 'org_issue_credit_count_max',
     marketplaceRankMinVarKey: 'org_marketplace_rank_min',

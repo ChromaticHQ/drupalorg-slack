@@ -70,8 +70,8 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
 
   const marketplaceTextBase = `:shopping_trolley: <https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _*${marketplaceRank}*_`;
   const marketplaceText = marketplaceRank <= marketplaceMin
-    ? `${marketplaceTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`
-    : `${marketplaceTextBase} :chart_with_downwards_trend: Down from a tracked high of _${marketplaceMin}_.`;
+    ? `${marketplaceTextBase} ${config.slackNotificationText.trackedHighText}`
+    : `${marketplaceTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${marketplaceMin}_.`;
   return {
     type: 'section',
     text: {
@@ -102,8 +102,8 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
 
   const creditCountTextBase = `:female-technologist: Issue credit count: _*${orgDrupalIssueCreditCount}*_`;
   const creditCountText = orgDrupalIssueCreditCount < creditCountMax
-    ? `${creditCountTextBase} :chart_with_downwards_trend: Down from a tracked high of _${creditCountMax}_.`
-    : `${creditCountTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+    ? `${creditCountTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${creditCountMax}_.`
+    : `${creditCountTextBase} ${config.slackNotificationText.trackedHighText}`;
   return {
     type: 'section',
     text: {
@@ -136,8 +136,8 @@ const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
 
   const projectsSupportedTextBase = `:female-construction-worker: Projects supported: _*${orgDrupalProjectsSupported}*_`;
   const projectsSupportedText = orgDrupalProjectsSupported < projectsSupportedMax
-    ? `${projectsSupportedTextBase} :chart_with_downwards_trend: Down from a tracked high of _${projectsSupportedMax}_.`
-    : `${projectsSupportedTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+    ? `${projectsSupportedTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${projectsSupportedMax}_.`
+    : `${projectsSupportedTextBase} ${config.slackNotificationText.trackedHighText}`;
   return {
     type: 'section',
     text: {
@@ -170,8 +170,8 @@ const caseStudiesPayloadBlock = (caseStudiesCount) => {
 
   const caseStudiesTextBase = `:blue_book: Case studies published: _*${caseStudiesCount}*_`;
   const caseStudiesText = caseStudiesCount < caseStudiesPublishedMax
-    ? `${caseStudiesTextBase} :chart_with_downwards_trend: Down from a tracked high of _${caseStudiesPublishedMax}_.`
-    : `${caseStudiesTextBase} :chart_with_upwards_trend: _*An all-time tracked high*_. :ccoin:`;
+    ? `${caseStudiesTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${caseStudiesPublishedMax}_.`
+    : `${caseStudiesTextBase} ${config.slackNotificationText.trackedHighText}`;
   return {
     type: 'section',
     text: {
@@ -200,7 +200,7 @@ const drupalOrgPayloadBlocks = (orgNode, marketplaceData, caseStudiesResponse) =
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: config.slackNotificationText,
+      text: config.slackNotificationText.primaryText,
     },
   });
   blocks.push({
@@ -222,7 +222,7 @@ const drupalOrgPayloadBlocks = (orgNode, marketplaceData, caseStudiesResponse) =
     elements: [
       {
         type: 'mrkdwn',
-        text: 'For more info, see https://www.drupal.org/chromatic.',
+        text: `For more info, see ${orgNode.url}.`,
       },
     ],
   });

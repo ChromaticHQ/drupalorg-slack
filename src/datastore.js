@@ -12,17 +12,17 @@ const db = low(adapter);
 
 // Add upsert functionality to lowdb.
 db._.mixin({
-  upsert: function(collection, obj, key) {
-    key = key || 'id';
-    for (var i = 0; i < collection.length; i++) {
-      var el = collection[i];
-      if(el[key] === obj[key]){
-        collection[i] = obj;
+  upsert: (collection, obj, key = 'id') => {
+    for (let i = 0; i < collection.length; i += 1) {
+      const el = collection[i];
+      if (el[key] === obj[key]) {
+        collection[i] = obj; // eslint-disable-line no-param-reassign
         return collection;
       }
-    };
+    }
     collection.push(obj);
-  }
+    return collection;
+  },
 });
 
 // Default data.
