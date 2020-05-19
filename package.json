@@ -2,10 +2,10 @@
   "name": "drupalorg-slack",
   "version": "1.0.0",
   "description": "App to pull an organization's data from Drupal.org and send to Slack.",
-  "author": { 
-    "name" : "Mark Dorison", 
-    "email" : "mark@chromatichq.com", 
-    "url" : "https://chromatichq.com"
+  "author": {
+    "name": "Mark Dorison",
+    "email": "mark@chromatichq.com",
+    "url": "https://chromatichq.com"
   },
   "license": "MIT",
   "keywords": [
