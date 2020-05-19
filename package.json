@@ -15,8 +15,10 @@
     "slack",
     "drupal"
   ],
+  "homepage": "https://github.com/ChromaticHQ/drupalorg-slack#readme",
+  "bugs": "https://github.com/ChromaticHQ/drupalorg-slack/issues",
   "repository": {
-    "url": "https://glitch.com/edit/#!/chq-drupal-org"
+    "url": "https://github.com/ChromaticHQ/drupalorg-slack"
   },
   "main": "server.js",
   "scripts": {
