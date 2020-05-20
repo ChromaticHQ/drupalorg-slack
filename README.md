@@ -37,7 +37,7 @@ trigger:
        the "Signing Secret".
     1. `SLACK_BOT_TOKEN`: Navidate to the "Install App" tab and use the "Bot
        User OAuth Access Token" value.
-    1. `DRUPAL_ORG_NODE_ID`: Your organization's node id from Drupal.org.
+    1. `DRUPAL_ORG_NODE_ID`: Your organization's node ID from Drupal.org.
 1. Configure the optional environment variables in `.env`. These values are
    utilized when the app is triggered from an external source such as a cron or
    Jenkins job as opposed to a "slash command" from within Slack.
