@@ -2907,7 +2907,7 @@ packages:
       integrity: sha1-Gc5QLKVyZl87ZHsQk5+X/RYV8QI=
   /rxjs/6.5.5:
     dependencies:
-      tslib: 1.11.2
+      tslib: 1.13.0
     dev: true
     engines:
       npm: '>=2.0.0'
@@ -3293,10 +3293,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-WIeWa7WCpFA6QetST301ARgVphM=
-  /tslib/1.11.2:
+  /tslib/1.13.0:
     dev: true
     resolution:
-      integrity: sha512-tTSkux6IGPnUGUd1XAZHcpu85MOkIl5zX49pO+jfsie3eP0B6pyhOlLXm3cAC6T7s+euSDDUUV+Acop5WmtkVg==
+      integrity: sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
   /tsscmp/1.0.6:
     dev: false
     engines:
