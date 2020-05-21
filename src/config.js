@@ -8,9 +8,9 @@ module.exports = {
   drupalOrgBaseUrl: 'https://www.drupal.org',
   drupalOrgMarketplacePath: '/drupal-services',
   slackNotificationText: {
-    primaryText: process.env.SLACK_NOTIFICATION_TEXT,
-    trackedHighText: ':chart_with_upwards_trend: _*An all-time tracked high*_. :sports_medal:',
-    downFromTrackedHighText: ':chart_with_downwards_trend: Down from a tracked high of',
+    primaryText: process.env.SLACK_NOTIFICATION_TEXT ? process.env.SLACK_NOTIFICATION_TEXT : 'Drupal.org Organization Statistics :zap:',
+    trackedHighText: process.env.SLACK_NOTIFICATION_TRACKED_HIGH_TEXT ? process.env.SLACK_NOTIFICATION_TRACKED_HIGH_TEXT : ':chart_with_upwards_trend: _*An all-time tracked high*_. :sports_medal:',
+    downFromTrackedHighText: process.env.SLACK_NOTIFICATION_DOWN_FROM_TRACKED_HIGH_TEXT ? process.env.SLACK_NOTIFICATION_DOWN_FROM_TRACKED_HIGH_TEXT : ':chart_with_downwards_trend: Down from a tracked high of',
   },
   keyValueDefaults: {
     issueCreditCountMaxVarKey: 'org_issue_credit_count_max',
