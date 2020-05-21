@@ -10,13 +10,16 @@ const config = require('./config');
 const adapter = new FileSync('.data/db.json');
 const db = low(adapter);
 
-// Add upsert functionality to lowdb.
+// Add "upsert" functionality to lowdb.
+// This checks if a value exists, update it if so, or inserts it if it does not.
+// @see https://github.com/typicode/lowdb/issues/348
 db._.mixin({
   upsert: (collection, obj, key = 'id') => {
     for (let i = 0; i < collection.length; i += 1) {
       const el = collection[i];
       if (el[key] === obj[key]) {
-        collection[i] = obj; // eslint-disable-line no-param-reassign
+        // eslint-disable-next-line no-param-reassign
+        collection[i] = obj;
         return collection;
       }
     }
