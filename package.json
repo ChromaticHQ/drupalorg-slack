@@ -25,7 +25,7 @@
     "start": "node src/server.js",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint --fix '**/*.js'",
-    "test": "npm run lint && npm-check"
+    "test": "npm run lint"
   },
   "engines": {
     "node": "12.x"

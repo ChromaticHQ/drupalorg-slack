@@ -90,10 +90,15 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
  * @return  {object}  Slack payload block object.
  */
 const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
-  const creditCountMax = datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey);
+  orgDrupalIssueCreditCount = parseInt(orgDrupalIssueCreditCount);
+  const creditCountMax = parseInt(datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey));
   // If we don't have a record for issue credits, or the new value from the API is
   // larger, we have a new high; update the record.
   if (creditCountMax === null || orgDrupalIssueCreditCount > creditCountMax) {
+    if (config.verboseMode) {
+      console.log(`Updating creditCountMax to new value: ${orgDrupalIssueCreditCount}`);
+    }
+    
     datastore.variableSet(
       config.keyValueDefaults.issueCreditCountMaxVarKey,
       orgDrupalIssueCreditCount,
