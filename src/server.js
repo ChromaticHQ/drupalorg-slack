@@ -92,7 +92,7 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
 const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
   const orgDrupalIssueCreditCountInt = parseInt(orgDrupalIssueCreditCount, 10);
   const creditCountMax = parseInt(
-    datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey), 10
+    datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey), 10,
   );
   // If we don't have a record for issue credits, or the new value from the API is
   // larger, we have a new high; update the record.
