@@ -1,6 +1,6 @@
 {
   "name": "drupalorg-slack",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "App to pull an organization's data from Drupal.org and send to Slack.",
   "author": {
     "name": "Mark Dorison",
@@ -31,9 +31,9 @@
     "node": "12.x"
   },
   "dependencies": {
-    "axios": "^0.19.2",
-    "cheerio": "^1.0.0-rc.2",
     "@slack/bolt": "^2.0.1",
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.2",
     "lowdb": "^1.0.0"
   },
   "devDependencies": {
