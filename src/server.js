@@ -90,23 +90,25 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
  * @return  {object}  Slack payload block object.
  */
 const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
-  orgDrupalIssueCreditCount = parseInt(orgDrupalIssueCreditCount);
-  const creditCountMax = parseInt(datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey));
+  const orgDrupalIssueCreditCountInt = parseInt(orgDrupalIssueCreditCount, 10);
+  const creditCountMax = parseInt(
+    datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey), 10,
+  );
   // If we don't have a record for issue credits, or the new value from the API is
   // larger, we have a new high; update the record.
-  if (creditCountMax === null || orgDrupalIssueCreditCount > creditCountMax) {
+  if (creditCountMax === null || orgDrupalIssueCreditCountInt > creditCountMax) {
     if (config.verboseMode) {
-      console.log(`Updating creditCountMax to new value: ${orgDrupalIssueCreditCount}`);
+      console.log(`Updating creditCountMax to new value: ${orgDrupalIssueCreditCountInt}`);
     }
-    
+
     datastore.variableSet(
       config.keyValueDefaults.issueCreditCountMaxVarKey,
-      orgDrupalIssueCreditCount,
+      orgDrupalIssueCreditCountInt,
     );
   }
 
-  const creditCountTextBase = `:female-technologist: Issue credit count: _*${orgDrupalIssueCreditCount}*_`;
-  const creditCountText = orgDrupalIssueCreditCount < creditCountMax
+  const creditCountTextBase = `:female-technologist: Issue credit count: _*${orgDrupalIssueCreditCountInt}*_`;
+  const creditCountText = orgDrupalIssueCreditCountInt < creditCountMax
     ? `${creditCountTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${creditCountMax}_.`
     : `${creditCountTextBase} ${config.slackNotificationText.trackedHighText}`;
   return {
