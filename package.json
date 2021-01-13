@@ -31,7 +31,7 @@
     "node": "12.x"
   },
   "dependencies": {
-    "@slack/bolt": "^2.6.1",
+    "@slack/bolt": "^2.7.0",
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.5",
     "lowdb": "^1.0.0"
