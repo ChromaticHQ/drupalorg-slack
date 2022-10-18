@@ -34,7 +34,7 @@
     "@slack/bolt": "^2.6.1",
     "axios": "^0.27.2",
     "cheerio": "^1.0.0-rc.10",
-    "lowdb": "^1.0.0"
+    "lowdb": "^4.0.0"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
