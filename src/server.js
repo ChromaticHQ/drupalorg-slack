@@ -69,7 +69,7 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
     datastore.variableSet(config.keyValueDefaults.marketplaceRankMinVarKey, marketplaceRank);
   }
 
-  const marketplaceTextBase = `:shopping_trolley: <https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _*${marketplaceRank}*_`;
+  const marketplaceTextBase = `:shopping_trolley: *<https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _${marketplaceRank}:_*`;
   const marketplaceText = marketplaceRank <= marketplaceMin
     ? `${marketplaceTextBase} ${config.slackNotificationText.trackedHighText}`
     : `${marketplaceTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${marketplaceMin}_.`;
@@ -144,7 +144,7 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
 };
 
 const creditCountText = (orgDrupalIssueCreditCountInt, creditCountMax, creditCountLastWeek) => {
-  const creditCountTextBase = `:female-technologist: *Issue credit count: _${orgDrupalIssueCreditCountInt}_*`;
+  const creditCountTextBase = `:female-technologist: *Issue credit count: _${orgDrupalIssueCreditCountInt}:_*`;
   let creditText = `${creditCountTextBase}`;
   
   if (orgDrupalIssueCreditCountInt < creditCountLastWeek) {
@@ -186,7 +186,7 @@ const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
     );
   }
 
-  const projectsSupportedTextBase = `:female-construction-worker: Projects supported: _*${orgDrupalProjectsSupported}*_`;
+  const projectsSupportedTextBase = `:female-construction-worker: *Projects supported: _${orgDrupalProjectsSupported}:_*`;
   const projectsSupportedText = orgDrupalProjectsSupported < projectsSupportedMax
     ? `${projectsSupportedTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${projectsSupportedMax}_.`
     : `${projectsSupportedTextBase} ${config.slackNotificationText.trackedHighText}`;
@@ -220,7 +220,7 @@ const caseStudiesPayloadBlock = (caseStudiesCount) => {
     );
   }
 
-  const caseStudiesTextBase = `:blue_book: Case studies published: _*${caseStudiesCount}*_`;
+  const caseStudiesTextBase = `:blue_book: *Case studies published: _${caseStudiesCount}:_*`;
   const caseStudiesText = caseStudiesCount < caseStudiesPublishedMax
     ? `${caseStudiesTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${caseStudiesPublishedMax}_.`
     : `${caseStudiesTextBase} ${config.slackNotificationText.trackedHighText}`;
