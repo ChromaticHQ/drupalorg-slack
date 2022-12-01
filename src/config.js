@@ -11,6 +11,7 @@ module.exports = {
     primaryText: process.env.SLACK_NOTIFICATION_TEXT || 'Drupal.org Organization Statistics :zap:',
     trackedHighText: process.env.SLACK_NOTIFICATION_TRACKED_HIGH_TEXT || ':chart_with_upwards_trend: _An all-time tracked high_. :sports_medal:',
     trackedWeeklyIncreasingText: process.env.SLACK_NOTIFICATION_TRACKED_WEEKLY_INCREASING_TEXT || ':chart_with_upwards_trend: _Trending up from last week\'s count of_',
+    trackedWeeklyDecreasingText: process.env.SLACK_NOTIFICATION_TRACKED_WEEKLY_DECREASING_TEXT || ':chart_with_downwards_trend: _Trending down from last week\'s count of_',
     downFromTrackedHighText: process.env.SLACK_NOTIFICATION_DOWN_FROM_TRACKED_HIGH_TEXT || ':chart_with_downwards_trend: Down from a tracked high of',
   },
   keyValueDefaults: {

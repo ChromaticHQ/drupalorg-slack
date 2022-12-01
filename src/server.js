@@ -1,4 +1,5 @@
-/*eslint-env es6*/
+/* eslint-env es6 */
+
 const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -83,6 +84,34 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
 };
 
 /**
+ * Prepare Slack block payload with supported project data.
+ *
+ * @param   {int}  orgDrupalIssueCreditCountInt  The number of credits attributed to the organization.
+ * @param   {int}  creditCountMax  The highest number of credits we have tracked for the organization.
+ * @param   {int}  creditCountLastWeek  The number of credits attributed to the organization last week.
+ *
+ * @return  string  Text payload for Slack message detailing credit counts.
+ */
+const creditCountText = (orgDrupalIssueCreditCountInt, creditCountMax, creditCountLastWeek) => {
+  const creditCountTextBase = `:female-technologist: *Issue credit count: _${orgDrupalIssueCreditCountInt}:_*`;
+  let creditText = `${creditCountTextBase}`;
+
+  if (orgDrupalIssueCreditCountInt < creditCountLastWeek) {
+    creditText += ` ${trackedWeeklyDecreasingText} _${creditCountLastWeek}._`;
+  } else if (orgDrupalIssueCreditCountInt == creditCountLastWeek) {
+    creditText += ' Holding steady from last week.';
+  } else {
+    creditText += ` ${config.slackNotificationText.trackedWeeklyIncreasingText} _${creditCountLastWeek}._`;
+  }
+  if (orgDrupalIssueCreditCountInt < creditCountMax) {
+    creditText += ` ${config.slackNotificationText.downFromTrackedHighText} _${creditCountMax}._`;
+  } else {
+    creditText += ` ${config.slackNotificationText.trackedHighText}`;
+  }
+  return creditText;
+};
+
+/**
  * Prepare Slack block payload with issue credit data.
  *
  * @param   {int}  orgDrupalIssueCreditCount  The number of issues credited to
@@ -93,7 +122,7 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
 const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
   const orgDrupalIssueCreditCountInt = parseInt(orgDrupalIssueCreditCount, 10);
   const creditCountMax = parseInt(
-    datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey), 10
+    datastore.variableGet(config.keyValueDefaults.issueCreditCountMaxVarKey), 10,
   );
   // If we don't have a record for issue credits, or the new value from the API is
   // larger, we have a new high; update the record.
@@ -107,7 +136,7 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
       orgDrupalIssueCreditCountInt,
     );
   }
-  
+
   const creditCountLastWeek = parseInt(
     datastore.variableGet(config.keyValueDefaults.issueCreditCountLastWeekVarKey), 10,
   );
@@ -122,18 +151,19 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
     if (config.verboseMode) {
       console.log(`Updating weeklyTimestamp to new value: ${currentDateTime}`);
     }
-    
+
     datastore.variableSet(
       config.keyValueDefaults.weeklyTimestamp,
       currentDateTime,
     );
     datastore.variableSet(
       config.keyValueDefaults.issueCreditCountLastWeekVarKey,
-      orgDrupalIssueCreditCountInt
+      orgDrupalIssueCreditCountInt,
     );
   }
 
-  const creditCountTextGenerated = creditCountText(orgDrupalIssueCreditCountInt, creditCountMax, creditCountLastWeek);
+  const creditCountTextGenerated = creditCountText(orgDrupalIssueCreditCountInt, creditCountMax, 
+                                                   creditCountLastWeek);
   return {
     type: 'section',
     text: {
@@ -141,28 +171,6 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
       text: creditCountTextGenerated,
     },
   };
-};
-
-const creditCountText = (orgDrupalIssueCreditCountInt, creditCountMax, creditCountLastWeek) => {
-  const creditCountTextBase = `:female-technologist: *Issue credit count: _${orgDrupalIssueCreditCountInt}:_*`;
-  let creditText = `${creditCountTextBase}`;
-  
-  if (orgDrupalIssueCreditCountInt < creditCountLastWeek) {
-    creditText += `Lower`;
-  }
-  else if (orgDrupalIssueCreditCountInt == creditCountLastWeek) {
-    creditText += ` Holding steady from last week.`;
-  }
-  else {
-    creditText += ` ${config.slackNotificationText.trackedWeeklyIncreasingText} _${creditCountLastWeek}._`
-  }
-  if (orgDrupalIssueCreditCountInt < creditCountMax) {
-    creditText += ` ${config.slackNotificationText.downFromTrackedHighText} _${creditCountMax}._`;
-  }
-  else {
-    creditText += ` ${config.slackNotificationText.trackedHighText}`;
-  }
-  return creditText;
 };
 
 /**
