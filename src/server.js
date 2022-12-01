@@ -86,9 +86,9 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
 /**
  * Prepare Slack block payload with supported project data.
  *
- * @param   {int}  orgDrupalIssueCreditCountInt  The number of credits attributed to the organization.
- * @param   {int}  creditCountMax  The highest number of credits we have tracked for the organization.
- * @param   {int}  creditCountLastWeek  The number of credits attributed to the organization last week.
+ * @param   {int}  orgDrupalIssueCreditCountInt  The number of credits attributed to the org.
+ * @param   {int}  creditCountMax  The highest number of credits tracked for the organization.
+ * @param   {int}  creditCountLastWeek  The number of credits attributed to the org last week.
  *
  * @return  string  Text payload for Slack message detailing credit counts.
  */
@@ -97,8 +97,8 @@ const creditCountText = (orgDrupalIssueCreditCountInt, creditCountMax, creditCou
   let creditText = `${creditCountTextBase}`;
 
   if (orgDrupalIssueCreditCountInt < creditCountLastWeek) {
-    creditText += ` ${trackedWeeklyDecreasingText} _${creditCountLastWeek}._`;
-  } else if (orgDrupalIssueCreditCountInt == creditCountLastWeek) {
+    creditText += ` ${config.slackNotificationText.trackedWeeklyDecreasingText} _${creditCountLastWeek}._`;
+  } else if (orgDrupalIssueCreditCountInt === creditCountLastWeek) {
     creditText += ' Holding steady from last week.';
   } else {
     creditText += ` ${config.slackNotificationText.trackedWeeklyIncreasingText} _${creditCountLastWeek}._`;
@@ -162,8 +162,8 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
     );
   }
 
-  const creditCountTextGenerated = creditCountText(orgDrupalIssueCreditCountInt, creditCountMax, 
-                                                   creditCountLastWeek);
+  const creditCountTextGenerated = creditCountText(orgDrupalIssueCreditCountInt, creditCountMax,
+    creditCountLastWeek);
   return {
     type: 'section',
     text: {
