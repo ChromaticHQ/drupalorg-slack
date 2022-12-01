@@ -20,7 +20,7 @@ trigger:
   app. This is useful for scheduling the app to notify a channel on a regular
   basis.
 
-![drupalorg-slack app screenshot](https://user-images.githubusercontent.com/20355/82163642-7388d200-987a-11ea-92e2-7aa77e7e5685.png)
+![drupalorg-slack app screenshot](https://user-images.githubusercontent.com/20355/205161865-662e0a19-b284-42ea-836a-55d381524dde.png)
 
 ## Getting Started
 
