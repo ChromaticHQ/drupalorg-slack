@@ -28,7 +28,7 @@
     "test": "npm run lint"
   },
   "engines": {
-    "node": "12.x"
+    "node": "16.x"
   },
   "dependencies": {
     "@slack/bolt": "^2.6.1",
