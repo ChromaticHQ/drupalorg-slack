@@ -1,3 +1,5 @@
+/* eslint-env es6 */
+
 const { App, LogLevel, ExpressReceiver } = require('@slack/bolt');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -68,7 +70,7 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
     datastore.variableSet(config.keyValueDefaults.marketplaceRankMinVarKey, marketplaceRank);
   }
 
-  const marketplaceTextBase = `:shopping_trolley: <https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _*${marketplaceRank}*_`;
+  const marketplaceTextBase = `:shopping_trolley: *<https://www.drupal.org/drupal-services?page=${marketplacePage}|Marketplace> rank: _${marketplaceRank}:_*`;
   const marketplaceText = marketplaceRank <= marketplaceMin
     ? `${marketplaceTextBase} ${config.slackNotificationText.trackedHighText}`
     : `${marketplaceTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${marketplaceMin}_.`;
@@ -79,6 +81,34 @@ const marketplaceRankPayloadBlock = (marketplaceData) => {
       text: marketplaceText,
     },
   };
+};
+
+/**
+ * Prepare Slack block payload with supported project data.
+ *
+ * @param   {int}  orgDrupalIssueCreditCountInt  The number of credits attributed to the org.
+ * @param   {int}  creditCountMax  The highest number of credits tracked for the organization.
+ * @param   {int}  creditCountLastWeek  The number of credits attributed to the org last week.
+ *
+ * @return  string  Text payload for Slack message detailing credit counts.
+ */
+const creditCountText = (orgDrupalIssueCreditCountInt, creditCountMax, creditCountLastWeek) => {
+  const creditCountTextBase = `:female-technologist: *Issue credit count: _${orgDrupalIssueCreditCountInt}:_*`;
+  let creditText = `${creditCountTextBase}`;
+
+  if (orgDrupalIssueCreditCountInt < creditCountLastWeek) {
+    creditText += ` ${config.slackNotificationText.trackedWeeklyDecreasingText} _${creditCountLastWeek}._`;
+  } else if (orgDrupalIssueCreditCountInt === creditCountLastWeek) {
+    creditText += ' Holding steady from last week.';
+  } else {
+    creditText += ` ${config.slackNotificationText.trackedWeeklyIncreasingText} _${creditCountLastWeek}._`;
+  }
+  if (orgDrupalIssueCreditCountInt < creditCountMax) {
+    creditText += ` ${config.slackNotificationText.downFromTrackedHighText} _${creditCountMax}._`;
+  } else {
+    creditText += ` ${config.slackNotificationText.trackedHighText}`;
+  }
+  return creditText;
 };
 
 /**
@@ -107,15 +137,38 @@ const issueCreditPayloadBlock = (orgDrupalIssueCreditCount) => {
     );
   }
 
-  const creditCountTextBase = `:female-technologist: Issue credit count: _*${orgDrupalIssueCreditCountInt}*_`;
-  const creditCountText = orgDrupalIssueCreditCountInt < creditCountMax
-    ? `${creditCountTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${creditCountMax}_.`
-    : `${creditCountTextBase} ${config.slackNotificationText.trackedHighText}`;
+  const creditCountLastWeek = parseInt(
+    datastore.variableGet(config.keyValueDefaults.issueCreditCountLastWeekVarKey), 10,
+  );
+  console.log(datastore.variableGet(config.keyValueDefaults.weeklyTimestamp));
+  const weeklyTimestamp = parseInt(
+    datastore.variableGet(config.keyValueDefaults.weeklyTimestamp), 10,
+  ) || 0;
+  const currentDateTime = Date.now();
+  const lastStoredCheckPlusOneWeek = weeklyTimestamp + 604800;
+  console.log(currentDateTime > lastStoredCheckPlusOneWeek);
+  if (creditCountLastWeek === null || currentDateTime > lastStoredCheckPlusOneWeek) {
+    if (config.verboseMode) {
+      console.log(`Updating weeklyTimestamp to new value: ${currentDateTime}`);
+    }
+
+    datastore.variableSet(
+      config.keyValueDefaults.weeklyTimestamp,
+      currentDateTime,
+    );
+    datastore.variableSet(
+      config.keyValueDefaults.issueCreditCountLastWeekVarKey,
+      orgDrupalIssueCreditCountInt,
+    );
+  }
+
+  const creditCountTextGenerated = creditCountText(orgDrupalIssueCreditCountInt, creditCountMax,
+    creditCountLastWeek);
   return {
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: creditCountText,
+      text: creditCountTextGenerated,
     },
   };
 };
@@ -141,7 +194,7 @@ const projectsSupportedPayloadBlock = (orgDrupalProjectsSupported) => {
     );
   }
 
-  const projectsSupportedTextBase = `:female-construction-worker: Projects supported: _*${orgDrupalProjectsSupported}*_`;
+  const projectsSupportedTextBase = `:female-construction-worker: *Projects supported: _${orgDrupalProjectsSupported}:_*`;
   const projectsSupportedText = orgDrupalProjectsSupported < projectsSupportedMax
     ? `${projectsSupportedTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${projectsSupportedMax}_.`
     : `${projectsSupportedTextBase} ${config.slackNotificationText.trackedHighText}`;
@@ -175,7 +228,7 @@ const caseStudiesPayloadBlock = (caseStudiesCount) => {
     );
   }
 
-  const caseStudiesTextBase = `:blue_book: Case studies published: _*${caseStudiesCount}*_`;
+  const caseStudiesTextBase = `:blue_book: *Case studies published: _${caseStudiesCount}:_*`;
   const caseStudiesText = caseStudiesCount < caseStudiesPublishedMax
     ? `${caseStudiesTextBase} ${config.slackNotificationText.downFromTrackedHighText} _${caseStudiesPublishedMax}_.`
     : `${caseStudiesTextBase} ${config.slackNotificationText.trackedHighText}`;

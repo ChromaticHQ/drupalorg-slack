@@ -31,7 +31,9 @@ db._.mixin({
 // Default data.
 db.defaults({
   keyvalues: [
+    { name: config.keyValueDefaults.weeklyTimestamp, value: null },
     { name: config.keyValueDefaults.issueCreditCountMaxVarKey, value: null },
+    { name: config.keyValueDefaults.issueCreditCountLastWeekVarKey, value: null },
     { name: config.keyValueDefaults.marketplaceRankMinVarKey, value: null },
     { name: config.keyValueDefaults.projectsSupportedMaxVarKey, value: null },
     { name: config.keyValueDefaults.caseStudiesPublishedMaxVarKey, value: null },
