@@ -38,7 +38,7 @@ trigger:
 1. Configure the required environment variables in `.env`:
     1. `SLACK_SIGNING_SECRET`: Navigate to the "Basic Information" tab and use
        the "Signing Secret".
-    1. `SLACK_BOT_TOKEN`: Navidate to the "Install App" tab and use the "Bot
+    1. `SLACK_BOT_TOKEN`: Navigate to the "Install App" tab and use the "Bot
        User OAuth Access Token" value.
     1. `DRUPAL_ORG_NODE_ID`: Your organization's node ID from Drupal.org.
 1. Configure the optional environment variables in `.env`. These values are
@@ -46,9 +46,9 @@ trigger:
    Jenkins job as opposed to a "slash command" from within Slack.
     1. `DEFAULT_CHANNEL_ID` / `SANDBOX_CHANNEL_ID` (optional): Populate these
        values with the Slack channel ID's where you want the app to post
-       notifations to. The easiest way to get these values is to load your Slack
+       notifications. The easiest way to get these values is to load your Slack
        workspace in a web browser (as opposed to the Slack app) and grab the
-       channel id's from the address bar.
+       channel IDs from the address bar.
     1. `ORG_TOKEN`: A secure value used to validate a request.
 1. Customize default values:
     1. `DEBUG_MODE`: Setting this value to `true` results in the
