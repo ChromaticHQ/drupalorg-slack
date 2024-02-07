@@ -3,7 +3,7 @@
 [![Remix on
 Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/drupalorg-slack)
 
-The `drupalorg-slack` Slack app uses Drupal.org's API to retrieve a number of
+The `drupalorg-slack` Slack app uses Drupal.org's API to retrieve several
 data points that are relevant to an organization's [Drupal
 Marketplace](http://drupal.org/marketplace) rank and report it into your Slack
 workspace. The data points include issue credit count, number of projects
@@ -17,14 +17,13 @@ trigger:
   and will result in an ephemeral message sent back to Slack with the response.
   Only the requesting user can see this response.
 * The external trigger allows for a request from outside of Slack to trigger the
-  app. This is useful for scheduling the app to notify a channel on a regular
-  basis.
+  app. This is useful for scheduling the app to notify a channel regularly.
 
 ![drupalorg-slack app screenshot](https://user-images.githubusercontent.com/20355/205161865-662e0a19-b284-42ea-836a-55d381524dde.png)
 
 ## Getting Started
 
-1. [Remix on Glitch](https://glitch.com/edit/#!/remix/chq-drupal-org) (easiest
+1. [Remix on Glitch](https://glitch.com/edit/#!/remix/drupalorg-slack) (easiest
    for a quick start since Glitch will host your app and provide a URL for
    Slack to talk directly to; [more info on Glitch](https://glitch.com/about)).
    Alternatively, and more traditionally, you may clone this repo and get the app
